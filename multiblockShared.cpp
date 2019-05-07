@@ -55,10 +55,9 @@ template <int BLOCK_SIZE> __global__ void MatrixMulCUDA(float *C, float *A,
 
 	__shared__ float Ads[BLOCK_SIZE][BLOCK_SIZE];
 	__shared__ float Bds[BLOCK_SIZE][BLOCK_SIZE];
-	// tutaj okreœlenie obliczanego przez w¹tek elementu macierzy (jak w poprzednim kodzie)
 	for (int m = 0; m < wA / BLOCK_SIZE; ++m) {
-		Ads[tx][ty] = A[row * wA + m*BLOCK_SIZE + tx]; //kolejny element dla s¹siedniego w¹tku
-		Bds[tx][ty] = B[(m*BLOCK_SIZE + ty)*wA + col]; // u¿ywana kolumna ]; // u¿ywana kolumna – jakoœæ pobrañ ? jakoœæ pobrañ ?
+		Ads[tx][ty] = A[row * wA + m*BLOCK_SIZE + tx];
+		Bds[tx][ty] = B[(m*BLOCK_SIZE + ty)*wA + col];
 		__syncthreads();
 		for (int k = 0; k < BLOCK_SIZE; ++k)
 			C_local += Ads[tx][k] * Bds[k][ty];
