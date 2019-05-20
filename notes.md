@@ -93,3 +93,37 @@ and register state and are therefore free to branch and execute independently. T
 term warp originates from weaving, the first parallel thread technology. A half-warp is
 either the first or second half of a warp. A quarter-warp is either the first, second,
 third, or fourth quarter of a warp
+
+- When a multiprocessor is given one or more thread blocks to execute, it partitions
+them into warps and each warp gets scheduled by a warp scheduler for execution. The
+way a block is partitioned into warps is always the same; each warp contains threads
+of consecutive, increasing thread IDs with the first warp containing thread 0. 
+
+- A warp executes one common instruction at a time, so full efficiency is realized
+when all 32 threads of a warp agree on their execution path. If threads of a warp
+diverge via a data-dependent conditional branch, the warp serially executes each
+branch path taken, disabling threads that are not on that path, and when all paths
+complete, the threads converge back to the same execution path. Branch divergence
+occurs only within a warp; different warps execute independently regardless of
+whether they are executing common or disjoint code paths.
+
+## Hardware multithreading
+
+- The execution context (program counters, registers, etc) for each warp processed by
+a multiprocessor is maintained on-chip during the entire lifetime of the warp.
+Therefore, switching from one execution context to another has no cost, and at
+every instruction issue time, a warp scheduler selects a warp that has threads ready
+to execute its next instruction (the active threads of the warp) and issues the
+instruction to those threads.
+
+- In particular, each multiprocessor has a set of 32-bit registers that are partitioned
+among the warps, and a parallel data cache or shared memory that is partitioned among
+the thread blocks.
+
+- The number of blocks and warps that can reside and be processed together on the
+multiprocessor for a given kernel depends on the amount of registers and shared
+memory used by the kernel and the amount of registers and shared memory
+available on the multiprocessor. There are also a maximum number of resident
+blocks and a maximum number of resident warps per multiprocessor. These limits as well the amount of registers and shared memory available on the multiprocessor are a function of the compute capability of the device and are given in Appendix F.
+If there are not enough registers or shared memory available per multiprocessor to
+process at least one block, the kernel will fail to launch.
