@@ -127,3 +127,39 @@ available on the multiprocessor. There are also a maximum number of resident
 blocks and a maximum number of resident warps per multiprocessor. These limits as well the amount of registers and shared memory available on the multiprocessor are a function of the compute capability of the device and are given in Appendix F.
 If there are not enough registers or shared memory available per multiprocessor to
 process at least one block, the kernel will fail to launch.
+
+## Performance optimization
+
+## app level
+
+- At a high level, the application should maximize parallel execution between the host,
+the devices, and the bus connecting the host to the devices, by using asynchronous
+functions calls and streams.
+
+## device level
+
+- At a lower level, the application should maximize parallel execution between the
+multiprocessors of a device.
+For devices of compute capability 1.x, only one kernel can execute on a device at
+one time, so the kernel should be launched with at least as many thread blocks as
+there are multiprocessors in the device.
+
+## multiprocessor level
+
+- At every instruction issue time, a warp scheduler
+selects a warp that is ready to execute its next instruction, if any, and issues the
+instruction to the active threads of the warp. The number of clock cycles it takes for
+a warp to be ready to execute its next instruction is called the latency, and full
+utilization is achieved when all warp schedulers always have some instruction to
+issue for some warp at every clock cycle during that latency period, or in other
+words, when latency is completely “hidden”.
+
+## Memory throughput
+
+- An instruction that accesses addressable memory (i.e. global, local, shared, constant,
+or texture memory) might need to be re-issued multiple times depending on the
+distribution of the memory addresses across the threads within the warp. How the
+distribution affects the instruction throughput this way is specific to each type of
+memory and described in the following sections. For example, for global memory,
+as a general rule, the more scattered the addresses are, the more reduced the
+throughput is.
