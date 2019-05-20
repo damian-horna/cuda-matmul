@@ -43,7 +43,53 @@ cores.
 - Threads within a block can cooperate by sharing data through some shared memory
 and by synchronizing their execution to coordinate memory accesses. More
 precisely, one can specify synchronization points in the kernel by calling the
-__syncthreads() intrinsic function; __syncthreads() acts as a barrier at
+\__syncthreads() intrinsic function; \__syncthreads() acts as a barrier at
 which all threads in the block must wait before any is allowed to proceed.
 
 ## Memory hierarchy
+
+- Each thread has private local memory. Each
+thread block has shared memory visible to all threads of the block and with the
+same lifetime as the block. All threads have access to the same global memory.
+
+- There are also two additional read-only memory spaces accessible by all threads: the
+constant and texture memory spaces. 
+
+## Compute capability
+- The compute capability of a device is defined by a major revision number and a minor
+revision number.
+
+- Devices with the same major revision number are of the same core architecture. The
+major revision number is 3 for devices based on the Kepler architecture, 2 for devices
+based on the Fermi architecture, and 1 for devices based on the Tesla architecture.
+
+- The minor revision number corresponds to an incremental improvement to the core
+architecture, possibly including new features.
+
+## Hardware implementation
+
+- The CUDA architecture is built around a scalable array of multithreaded Streaming
+Multiprocessors (SMs). When a CUDA program on the host CPU invokes a kernel
+grid, the blocks of the grid are enumerated and distributed to multiprocessors with
+available execution capacity. The threads of a thread block execute concurrently on
+one multiprocessor, and multiple thread blocks can execute concurrently on one
+
+- A multiprocessor is designed to execute hundreds of threads concurrently. To
+manage such a large amount of threads, it employs a unique architecture called
+SIMT (Single-Instruction, Multiple-Thread) that is described in Section 4.1. The
+instructions are pipelined to leverage instruction-level parallelism within a single
+thread, as well as thread-level parallelism extensively through simultaneous hardware
+multithreading as detailed in Section 4.2. Unlike CPU cores they are issued in order
+however and there is no branch prediction and no speculative execution.
+multiprocessor. As thread blocks terminate, new blocks are launched on the vacated
+multiprocessors.
+
+## SIMT architecture
+
+- The multiprocessor creates, manages, schedules, and executes threads in groups of
+32 parallel threads called warps. Individual threads composing a warp start together
+at the same program address, but they have their own instruction address counter
+and register state and are therefore free to branch and execute independently. The
+term warp originates from weaving, the first parallel thread technology. A half-warp is
+either the first or second half of a warp. A quarter-warp is either the first, second,
+third, or fourth quarter of a warp
